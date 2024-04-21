@@ -1,0 +1,6 @@
+this is a test for BUFFERSIZE and vector push_back realloc
+more line for realloc in  each line when more than LINEBUFFER
+which means one line should more than at least 8 character
+and more over
+we must have more than 4 lines
+exactly this is the fifth line and let us test these reverse programm.
