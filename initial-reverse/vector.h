@@ -1,3 +1,4 @@
+
 #ifndef __COMMON_H__
 #define __COMMON_H__
 #include <stdio.h>
@@ -11,7 +12,7 @@ do{                                 \
 } while(0)
 
 /*  Very Small BUFFERSIZE JUST FOR TEST.
-*   Normally use INITCAPACITY = 16,BUFFERSIZE = 1024.
+*   Normally use INITCAPACITY = 16,BUFFERSIZE = 256.
 */
 
 #define INITCAPACITY 4      
@@ -20,15 +21,15 @@ do{                                 \
 #endif
 
 typedef struct dynamic_array_struct{
-    char*   string[BUFFERSIZE];
+    char**   string;
     size_t  capacity;
     size_t  size;
 }vector;
 
 vector* vector_init(){
     vector*  v = (vector*)malloc(sizeof(vector));
-    v->string[BUFFERSIZE]=(char*)malloc(INITCAPACITY*sizeof(char[BUFFERSIZE]));
-    if (v->string[BUFFERSIZE] == NULL){
+    v->string=(char**)malloc(INITCAPACITY*sizeof(char*));
+    if (v->string == NULL){
         errorhandler("reverse: malloc failed");
     }
     v->size = 0;
@@ -37,8 +38,8 @@ vector* vector_init(){
 }
 
 void vector_resize(vector* v){
-    v->string[BUFFERSIZE]=(char*)realloc(v->string,2*v->capacity);
-    if (v->string[BUFFERSIZE] == NULL){
+    v->string=(char**)realloc(v->string,2*v->capacity*sizeof(char*));
+    if (v->string == NULL){
         errorhandler("reverse: realloc failed");
     }
     v->capacity*=2;
@@ -46,9 +47,9 @@ void vector_resize(vector* v){
 
 void push_back(vector* v,char s[]){
     int index=v->size;
-    v->string[index]=(char*)realloc(v->string[index],strlen(s)*sizeof(char));
-    if (v->string[BUFFERSIZE] == NULL){
-        errorhandler("reverse: realloc failed");
+    v->string[index]=(char*)malloc((strlen(s)+1)*sizeof(char));
+    if (v->string[index] == NULL){
+        errorhandler("reverse: malloc failed");
     }
     strcpy(v->string[index],s);
     v->size++;
@@ -57,6 +58,10 @@ void push_back(vector* v,char s[]){
     }
 }
 
-void free_all(vector* v){
-    free(v);
+void free_all(vector* v) {
+    for (size_t i = 0; i < v->size; i++) {
+        free(v->string[i]); 
+    }
+    free(v->string); 
+    free(v); 
 }

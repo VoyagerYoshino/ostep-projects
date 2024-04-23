@@ -47,7 +47,7 @@ int main(int argc,char* argv[]){
     vector* v = vector_init();
     size_t linesize = BUFFERSIZE;
     char* line = malloc(linesize*sizeof(char));
-    if (v->string[BUFFERSIZE] == NULL){
+    if (line == NULL){
         errorhandler("reverse: malloc failed");
     }
     while(getline(&line,&linesize,fpin) != EOF){
