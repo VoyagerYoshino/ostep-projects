@@ -70,8 +70,8 @@ void otherCommand(vector* arguments){
         return;
     }
     while(PATH[i] != NULL){
-        char* destination =(char*)malloc(CAPACITY*sizeof(char));
-        strcat(destination,PATH[i]);
+        char destination[CAPACITY];
+        strcpy(destination,PATH[i]);
         strcat(destination,"/");
         strcat(destination,get_element(arguments,0));
         if (access(destination,X_OK) == 0){
@@ -83,7 +83,6 @@ void otherCommand(vector* arguments){
                 execv(destination,arguments->string);
             }else{
                 wait(NULL);
-                free(destination);
                 break;
             }
         }else{
