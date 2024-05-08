@@ -20,16 +20,32 @@ do{                                 \
 
 #define buildinidentifer(co)   ((strcmp(co,"cd") == 0) || (strcmp(co,"exit") == 0) || (strcmp(co,"path") == 0)) ? 1 : 0
 
-int phasearguments(char* inputline,vector* arguments){
+int phasespace(char* inputline,vector* arguments){      /* PHASE SPACE HELP FUNCTION*/
     char* token;
     char* delim = " \t\n";
-    int size = 0;
     while((token = strsep(&inputline,delim)) != NULL){
         if (*token != '\0'){
             push_back(arguments,token);
         }
     }
     return arguments->size;
+}
+
+int phaseinput(char* inputline,vector* arguments,vector* output){  
+    int argumentSize;
+    if (strstr(inputline,">") == NULL){
+        argumentSize = phasespace(inputline,arguments);
+    }else{
+        char* token;
+        char* delim = ">";
+        token = strsep(&inputline,delim);
+        argumentSize = phasespace(token,arguments);
+        phasespace(inputline,output);
+        if (output->size != 1 || arguments->size == 0){
+            return -1;
+        }
+    }
+    return argumentSize;
 }
 
 void buildInCommand(vector* arguments){
@@ -63,7 +79,7 @@ void buildInCommand(vector* arguments){
     }
 }
 
-void otherCommand(vector* arguments){
+void otherCommand(vector* arguments,vector* output){
     int i = 0;
     if (PATH[0] == NULL){
         errorhandler;
@@ -80,6 +96,12 @@ void otherCommand(vector* arguments){
                 errorhandler;
                 return;
             }else if (rc == 0){
+                if (output->size == 1){                         /*REDIRECTION PART*/
+                    FILE* fp = fopen(get_element(output,0),"w");
+                    dup2(fileno(fp),STDOUT_FILENO);
+                    dup2(fileno(fp),STDERR_FILENO);
+                    fclose(fp);
+                }
                 execv(destination,arguments->string);
             }else{
                 wait(NULL);
@@ -109,18 +131,25 @@ int main(int argc,char* argv[]){
     do{
         if (argc == INTERMODE)      fprintf(stdout,"wish> ");
         vector* arguments = vector_init();
+        vector* output = vector_init();
         char* inputLine;
         size_t lineSize = 0;
         int rc;
         if((rc = getline(&inputLine,&lineSize,fp)) != EOF){
-            if(phasearguments(inputLine,arguments) == 0) continue;
+            rc = phaseinput(inputLine,arguments,output);
+            if(rc == 0) continue;                   /*NO ARGUMENTS AT ALL*/
+            if(rc == -1){                           /*REDIRECTION ERROR*/
+                errorhandler;
+                continue;                           
+            }
             if(buildinidentifer(get_element(arguments,0))){
                 buildInCommand(arguments);
              }else{
-                otherCommand(arguments);
+                otherCommand(arguments,output);
              }
         }
         free_all(arguments);
+        free_all(output);
         if (rc == EOF){
             exit(EXIT_SUCCESS);
         }
