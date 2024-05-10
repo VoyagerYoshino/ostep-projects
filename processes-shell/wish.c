@@ -168,10 +168,23 @@ int main(int argc,char* argv[]){
                 char currentCommand[CAPACITY] = {'\0'};
                 strcpy(currentCommand,get_element(singleCommands,0));                           
                 execsingleCommand(currentCommand,arguments,output);                 
+            }else{
+                pid_t child_pid, wpid;
+                int status = 0;
+                for(int i = 0;i < singleCommands->size;i++){
+                    if ((child_pid = fork()) == 0) {
+                        char currentCommand[CAPACITY] = {'\0'};
+                        strcpy(currentCommand,get_element(singleCommands,i));   
+                        execsingleCommand(currentCommand,arguments,output);            
+                        exit(EXIT_SUCCESS);
+                    }    
+                }
+                while ((wpid = wait(&status)) > 0);     /*WAIT ALL CHILDRERN PROCESSES*/   
             }
         }
         free_all(arguments);
         free_all(output);
+        free_all(singleCommands);
         if (rc == EOF){
             exit(EXIT_SUCCESS);
         }
