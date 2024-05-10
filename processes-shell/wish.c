@@ -20,6 +20,17 @@ do{                                 \
 
 #define buildinidentifer(co)   ((strcmp(co,"cd") == 0) || (strcmp(co,"exit") == 0) || (strcmp(co,"path") == 0)) ? 1 : 0
 
+int phaseparallel(char* inputline,vector* singleCommands){      /*PHASE PARALLEL FUNCTION*/
+    char* token;
+    char* delim = "&";
+    while((token = strsep(&inputline,delim)) != NULL){
+        if (*token != '\0'){
+            push_back(singleCommands,token);
+        }
+    }
+    return singleCommands->size;
+}
+
 int phasespace(char* inputline,vector* arguments){      /* PHASE SPACE HELP FUNCTION*/
     char* token;
     char* delim = " \t\n";
@@ -115,6 +126,20 @@ void otherCommand(vector* arguments,vector* output){
     }
 }
 
+void execsingleCommand(char* inputline,vector* arguments,vector* output){
+    int rc = phaseinput(inputline,arguments,output);
+    if (rc == 0 )   return;
+    if (rc == -1){
+        errorhandler;
+        return;
+    }
+    if(buildinidentifer(get_element(arguments,0))){
+        buildInCommand(arguments);
+    }else{
+        otherCommand(arguments,output);
+    }
+}
+
 int main(int argc,char* argv[]){
     FILE *fp = stdin;
     if (argc != INTERMODE && argc != BATCHMODE){
@@ -132,21 +157,18 @@ int main(int argc,char* argv[]){
         if (argc == INTERMODE)      fprintf(stdout,"wish> ");
         vector* arguments = vector_init();
         vector* output = vector_init();
+        vector* singleCommands =vector_init();
         char* inputLine;
         size_t lineSize = 0;
         int rc;
         if((rc = getline(&inputLine,&lineSize,fp)) != EOF){
-            rc = phaseinput(inputLine,arguments,output);
+            rc = phaseparallel(inputLine,singleCommands);
             if(rc == 0) continue;                   /*NO ARGUMENTS AT ALL*/
-            if(rc == -1){                           /*REDIRECTION ERROR*/
-                errorhandler;
-                continue;                           
+            if(rc == 1){                            /*SINGLE COMMAND*/
+                char currentCommand[CAPACITY] = {'\0'};
+                strcpy(currentCommand,get_element(singleCommands,0));                           
+                execsingleCommand(currentCommand,arguments,output);                 
             }
-            if(buildinidentifer(get_element(arguments,0))){
-                buildInCommand(arguments);
-             }else{
-                otherCommand(arguments,output);
-             }
         }
         free_all(arguments);
         free_all(output);
