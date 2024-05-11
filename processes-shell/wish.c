@@ -83,7 +83,7 @@ void buildInCommand(vector* arguments){
             PATH[0] = NULL;
         }else{
             for(int i = 1;i < arguments->size;i++){
-                PATH[i-1] = (char*)malloc(strlen(get_element(arguments,i)+1));
+                PATH[i-1] = (char*)calloc(strlen(get_element(arguments,i))+1,sizeof(char));
                 strcpy(PATH[i-1],get_element(arguments,i));
             }
         }
@@ -98,8 +98,8 @@ void otherCommand(vector* arguments,vector* output){
         return;
     }
     _Bool ANYACCESSABLE = FALSE;
-    while(PATH[i] != NULL){
-        char destination[CAPACITY];
+    while(!ANYACCESSABLE && PATH[i] != NULL){
+        char destination[CAPACITY] = {'\0'};
         strcpy(destination,PATH[i]);
         strcat(destination,"/");
         strcat(destination,get_element(arguments,0));
@@ -186,9 +186,9 @@ int main(int argc,char* argv[]){
                 while ((wpid = wait(&status)) > 0);     /*WAIT ALL CHILDRERN PROCESSES*/   
             }
         }
+        free_all(singleCommands);
         free_all(arguments);
         free_all(output);
-        free_all(singleCommands);
         if (rc == EOF){
             exit(EXIT_SUCCESS);
         }
