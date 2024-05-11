@@ -7,7 +7,9 @@
 
 #define INTERMODE 1
 #define BATCHMODE 2
-#define CAPACITY 256 
+#define CAPACITY 256
+#define FALSE 0
+#define TRUE 1 
 
 char* PATH[CAPACITY] = {"/bin",NULL};
 
@@ -81,9 +83,8 @@ void buildInCommand(vector* arguments){
             PATH[0] = NULL;
         }else{
             for(int i = 1;i < arguments->size;i++){
-                char destination[CAPACITY] = {'\0'};
-                strcpy(destination,get_element(arguments,i));
-                PATH[i-1] = destination;  
+                PATH[i-1] = (char*)malloc(strlen(get_element(arguments,i)+1));
+                strcpy(PATH[i-1],get_element(arguments,i));
             }
         }
         return;
@@ -96,12 +97,14 @@ void otherCommand(vector* arguments,vector* output){
         errorhandler;
         return;
     }
+    _Bool ANYACCESSABLE = FALSE;
     while(PATH[i] != NULL){
         char destination[CAPACITY];
         strcpy(destination,PATH[i]);
         strcat(destination,"/");
         strcat(destination,get_element(arguments,0));
         if (access(destination,X_OK) == 0){
+            ANYACCESSABLE = TRUE;
             int rc = fork();
             if (rc < 0){
                 errorhandler;
@@ -118,11 +121,12 @@ void otherCommand(vector* arguments,vector* output){
                 wait(NULL);
                 break;
             }
-        }else{
-            errorhandler;
-            return;
         }
         i++;
+    }
+    if (!ANYACCESSABLE){
+        errorhandler;
+        return;
     }
 }
 
