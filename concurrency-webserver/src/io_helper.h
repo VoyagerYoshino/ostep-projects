@@ -1,5 +1,6 @@
 #ifndef __IO_HELPER__
 #define __IO_HELPER__
+#define _DEFAULT_SOURCE
 
 #include <arpa/inet.h>
 #include <assert.h>
