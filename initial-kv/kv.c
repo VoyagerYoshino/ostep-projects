@@ -117,7 +117,10 @@ void delete(char* key){
 }
 
 void clear(){
-
+    if(remove("data.txt") != 0){
+        errorhandler;
+        exit(EXIT_FAILURE);
+    }
 }
 
 
@@ -145,8 +148,13 @@ int singleCommand_execution(char* arguments[],int index){
                 clear();
                 break;
             }
+            if(i == 4 && index ==1){
+                goodCommand =TRUE;
+                break;
+            }
         }
     }
+
 }
 
 
