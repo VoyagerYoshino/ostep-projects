@@ -123,6 +123,20 @@ void clear(){
     }
 }
 
+void all(){
+    FILE* fp;
+    if ((fp = fopen("data.txt","r")) == NULL){
+        errorhandler;
+        exit(EXIT_FAILURE);
+    }
+    char* line;
+    size_t len = 0;
+    while(getline(&line,&len,fp) != EOF){
+        fprintf(stdout,"%s",line);
+    }
+    fclose(fp);
+}
+
 
 int singleCommand_execution(char* arguments[],int index){
     _Bool goodCommand = FALSE;
@@ -150,11 +164,14 @@ int singleCommand_execution(char* arguments[],int index){
             }
             if(i == 4 && index ==1){
                 goodCommand =TRUE;
+                all();
                 break;
             }
         }
+        if (goodCommand ==FALSE){
+            fprintf(stdout,"BAD COMMAND.\n");
+        }
     }
-
 }
 
 
@@ -166,6 +183,5 @@ int main(int argc,char* argv[]){
             singleCommand_execution(arguments,index);
         }
     }
-
     return 0;
 }
