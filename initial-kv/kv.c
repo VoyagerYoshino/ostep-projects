@@ -30,22 +30,39 @@ int arguments_sepration(char* command,char* arguments[]){
     return index;
 }
 
-void put(int key,char* value){
-    FILE *fp;
+void put(char* key,char* value){
+    FILE *fp,*fpr;
+    _Bool keyValid = TRUE;
     if((fp = fopen("data.txt","a"))==NULL){
         errorhandler;
         exit(EXIT_FAILURE);
     }
-    if (fprintf(fp,"%d,%s\n",key,value) < 0 ){
+    if((fpr = fopen("data.txt","r"))==NULL){
         errorhandler;
         exit(EXIT_FAILURE);
-    }       
+    }
+    char* line;
+    size_t len = 0;
+    while(getline(&line,&len,fpr) != EOF){
+        char* line_args[2] = {NULL,NULL};
+        arguments_sepration(line,line_args);
+        if (strcmp(line_args[0],key) == 0){
+            keyValid =FALSE;
+            break;
+        }
+    }    
+    if (keyValid == TRUE){
+        fprintf(fp,"%d,%s\n",atoi(key),value);   
+    }else{
+        fprintf(stdout,"%s already exist\n",key);
+    }
     fclose(fp);
+    fclose(fpr);
 }
 
 void get(char* key){
     FILE* fp;
-    _Bool flag = FALSE;
+    _Bool keyValid = FALSE;
     if ((fp = fopen("data.txt","r")) == NULL){
         errorhandler;
         exit(EXIT_FAILURE);
@@ -56,34 +73,78 @@ void get(char* key){
         char* line_args[2] = {NULL,NULL};
         arguments_sepration(line,line_args);
         if (strcmp(line_args[0],key) == 0){
-            flag =TRUE;
+            keyValid =TRUE;
             fprintf(stdout,"%s,%s",line_args[0],line_args[1]);
             break;
         }
     }
     fclose(fp);
-    if (flag == FALSE){
+    if (keyValid == FALSE){
         fprintf(stdout,"%s not found\n",key);
     }
 }
 
+void delete(char* key){
+    FILE* fp,*temp;
+    _Bool keyValid = FALSE;
+    if ((fp = fopen("data.txt","r")) == NULL){
+        errorhandler;
+        exit(EXIT_FAILURE);
+    }
+    if ((temp = fopen("temp.txt","a")) == NULL){
+        errorhandler;
+        exit(EXIT_FAILURE);
+    }
+    char* line;
+    size_t len = 0;
+    while(getline(&line,&len,fp) != EOF){
+        char* line_args[2] = {NULL,NULL};
+        arguments_sepration(line,line_args);
+        if (strcmp(line_args[0],key) == 0){
+            keyValid =TRUE;
+            continue;
+        }else{
+            fprintf(temp,"%s,%s",line_args[0],line_args[1]);
+        }
+    }
+    fclose(fp);
+    fclose(temp);
+    remove("data.txt");
+    rename("temp.txt","data.txt");
+    if (keyValid == FALSE){
+        fprintf(stdout,"%s not found\n",key);
+    }    
+}
+
+void clear(){
+
+}
 
 
 int singleCommand_execution(char* arguments[],int index){
-    _Bool flag = FALSE;
+    _Bool goodCommand = FALSE;
     for(int i = 0;i < OPTNUM;i++){
         if (strcmp(arguments[0],OPT[i]) == 0){
-            if (i == 0 && index ==3){
-                flag =TRUE;
-                put(atoi(arguments[1]),arguments[2]);
+            if (i == 0 && index == 3){
+                goodCommand =TRUE;
+                put(arguments[1],arguments[2]);
                 break;
             }
-            if (i == 1 && index ==2){
-                flag =TRUE;
+            if (i == 1 && index == 2){
+                goodCommand =TRUE;
                 get(arguments[1]);
                 break;
             }
-
+            if (i == 2 && index == 2){
+                goodCommand = TRUE;
+                delete(arguments[1]);
+                break;
+            }
+            if (i == 3 && index == 1){
+                goodCommand =TRUE;
+                clear();
+                break;
+            }
         }
     }
 }
